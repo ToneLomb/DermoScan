@@ -6,30 +6,16 @@ from tensorflow import keras
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Activation, Dense
 from tensorflow.keras import layers
+from save_load import *
 
-pickle_in = open("X_train_reshape","rb")
-X_train = pickle.load(pickle_in)
-pickle_in.close()
+IMG_SIZE=100
 
-pickle_in = open("X_valid_reshape","rb")
-X_valid = pickle.load(pickle_in)
-pickle_in.close()
-
-pickle_in = open("X_test_reshape","rb")
-X_test = pickle.load(pickle_in)
-pickle_in.close()
-
-pickle_in = open("Y_train","rb")
-Y_train = pickle.load(pickle_in)
-pickle_in.close()
-
-pickle_in = open("Y_valid","rb")
-Y_valid = pickle.load(pickle_in)
-pickle_in.close()
-
-pickle_in = open("Y_test","rb")
-Y_test = pickle.load(pickle_in)
-pickle_in.close()
+X_train=load_data("X_train")
+Y_train=load_data("Y_train")
+X_valid=load_data("X_valid")
+Y_valid=load_data("Y_valid")
+X_test=load_data("X_test")
+Y_test=load_data("Y_test")
 
 
 """def create_model():
@@ -51,7 +37,7 @@ pickle_in.close()
 
 def create_model():
     model = tf.keras.models.Sequential([
-    tf.keras.layers.Conv2D(32,(3,3) ,input_shape = (150,150,3),activation = 'relu'),
+    tf.keras.layers.Conv2D(32,(3,3) ,input_shape = (IMG_SIZE,IMG_SIZE,3),activation = 'relu'),
     tf.keras.layers.MaxPooling2D((2,2)),
     tf.keras.layers.Conv2D(64,(3,3) ,activation = 'relu'),
     tf.keras.layers.MaxPooling2D((2,2)),
@@ -67,14 +53,29 @@ def create_model():
 
 model = create_model()
 
-callbacks = keras.callbacks.ModelCheckpoint(filepath=r'D:\Scolaire\S4\Programmation\Projet\model',save_freq='epoch')
+callbacks = keras.callbacks.ModelCheckpoint(filepath=r'O:\DermoResult',save_freq='epoch')
 
 model.compile(optimizer = tf.keras.optimizers.RMSprop(learning_rate=0.001),loss='binary_crossentropy',metrics = ['acc'])
 
-history = model.fit(x=X_train,y=Y_train,batch_size=50,epochs=5,validation_data=(X_valid,Y_valid),callbacks=callbacks)
+history = model.fit(x=X_train,y=Y_train,batch_size=50,epochs=20,validation_data=(X_valid,Y_valid),callbacks=callbacks)
 
-loss, acc = model.evaluate(x=X_valid,y=Y_valid)
+loss, acc = model.evaluate(x=X_test,y=Y_test)
 
 print("loss: %.2f" % loss)
 print("acc: %.2f" % acc)
+
+plt.figure(figsize=(12,8))
+plt.subplot(2,1,1)
+plt.plot(history.history["acc"])
+plt.plot(history.history["val_acc"])
+plt.title("train vs val accuracy")
+plt.xlabel("epoch")
+plt.ylabel("accuracy")
+plt.subplot(2,1,2)
+plt.plot(history.history["loss"])
+plt.plot(history.history["val_loss"])
+plt.title("train vs val loss")
+plt.xlabel("epoch")
+plt.ylabel("loss")
+plt.show()
 
