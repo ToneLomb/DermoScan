@@ -11,6 +11,8 @@ import keras_tuner as kt
 
 IMG_SIZE = 150
 
+#loading data
+
 X_train=load_data("X_train")
 Y_train=load_data("Y_train")
 X_valid=load_data("X_valid")
@@ -18,15 +20,27 @@ Y_valid=load_data("Y_valid")
 X_test=load_data("X_test")
 Y_test=load_data("Y_test")
 
+#tuning our model
+
 def build_model(hp):
     model = keras.Sequential()
-    model.add(keras.Input(shape=(150,150,3)))
+    model.add(keras.Input(shape=(IMG_SIZE,IMG_SIZE,3)))
+    
+    #adding different layers
     model.add(layers.Conv2D(
+        
+        #tuning filters
         filters=hp.Int('conv_1_filter', min_value=32,max_value=128,step=16,default=32),
+
+        #tuning kernel
         kernel_size = hp.Choice('conv_1_kernel',values = [2,3,5],default=3),
+
         input_shape = (IMG_SIZE,IMG_SIZE,3),
+
+        #tuning activation mode
         activation = hp.Choice('conv_1_activation',values = ['relu','sigmoid','tanh'],default = 'relu')))
 
+    #pooling
     model.add(layers.MaxPooling2D((2,2)))
     if hp.Boolean("dropout"):
         model.add(layers.Dropout(rate=hp.Float('dropout_1',min_value=0.0,max_value=0.5,default=0.25,step=0.05,)))
@@ -36,6 +50,7 @@ def build_model(hp):
         kernel_size = hp.Choice('conv_2_kernel',values = [2,3,5],default=3),
         activation = hp.Choice('conv_2_activation',values = ['relu','sigmoid','tanh'],default = 'relu')))
 
+    #adding other layers
     model.add(layers.MaxPooling2D((2,2)))
     if hp.Boolean("dropout"):
         model.add(layers.Dropout(rate=hp.Float('dropout_2',min_value=0.0,max_value=0.5,default=0.25,step=0.05,)))
@@ -60,7 +75,7 @@ def build_model(hp):
     if hp.Boolean("dropout"):
         model.add(layers.Dropout(rate=hp.Float('dropout_4',min_value=0.0,max_value=0.5,default=0.25,step=0.05,))) 
 
-
+    #flatten to have a row
     model.add(layers.Flatten())
 
 
@@ -68,9 +83,10 @@ def build_model(hp):
         inputs=hp.Int('units',min_value=32,max_value=512,step=32,default=128),
         activation=hp.Choice('dense_activation',values=['relu','sigmoid','tanh'])))
 
-
+    #output of the cnn
     model.add(layers.Dense(1,activation='softmax'))
 
+    #optimization and metrics
     model.compile(
         optimizer=keras.optimizers.Adam(
             hp.Float(
@@ -86,8 +102,8 @@ def build_model(hp):
         )
     return model
 
-model = build_model(kt.HyperParameters())
 
+#specifying what kind of value we want to tune
 tuner = kt.RandomSearch(
     hypermodel=build_model,
     objective="val_accuracy",
@@ -98,28 +114,23 @@ tuner = kt.RandomSearch(
     project_name="dermoscan_hyperparam_model",
 )
 
+#starting the tune of the model
 tuner.search(X_train, Y_train, epochs=5, validation_data=(X_valid, Y_valid))
+
+#getting best models
 models = tuner.get_best_models(num_models=2)
 best_model = models[0]
+
+#getting a summary of our model
 best_model.summary()
 tuner.results_summary()
 
-history = model.fit(x=X_train,y=Y_train,batch_size=50,epochs=20,validation_data=(X_valid,Y_valid),callbacks=callbacks)
+#saving progression of the training by epoch
+callbacks = keras.callbacks.ModelCheckpoint(filepath=r'O:\DermoResult',save_freq='epoch')
 
-loss, acc = model.evaluate(x=X_test,y=Y_test)
 
+#history = best_model.fit(x=X_train,y=Y_train,batch_size=50,epochs=20,validation_data=(X_valid,Y_valid),callbacks=callbacks)
 
-plt.figure(figsize=(12,8))
-plt.subplot(2,1,1)
-plt.plot(history.history["acc"])
-plt.plot(history.history["val_acc"])
-plt.title("train vs val accuracy")
-plt.xlabel("epoch")
-plt.ylabel("accuracy")
-plt.subplot(2,1,2)
-plt.plot(history.history["loss"])
-plt.plot(history.history["val_loss"])
-plt.title("train vs val loss")
-plt.xlabel("epoch")
-plt.ylabel("loss")
-plt.show()
+#testing model
+loss, acc = best_model.evaluate(x=X_test,y=Y_test)
+
