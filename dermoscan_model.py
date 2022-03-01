@@ -8,6 +8,8 @@ from tensorflow.keras.layers import Activation, Dense
 from tensorflow.keras import layers
 from save_load import *
 
+
+
 IMG_SIZE=100
 
 X_train=load_data("X_train")
@@ -32,6 +34,7 @@ Y_test=load_data("Y_test")
     model.add(layers.Dense(1,activation='softmax'))
     model.summary()
     return model"""
+
 
 
 
@@ -61,8 +64,6 @@ history = model.fit(x=X_train,y=Y_train,batch_size=50,epochs=20,validation_data=
 
 loss, acc = model.evaluate(x=X_test,y=Y_test)
 
-print("loss: %.2f" % loss)
-print("acc: %.2f" % acc)
 
 plt.figure(figsize=(12,8))
 plt.subplot(2,1,1)
