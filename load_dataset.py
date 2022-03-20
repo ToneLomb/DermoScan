@@ -8,12 +8,14 @@ from tqdm import tqdm
 import pickle
 from save_load import *
 
+
+
 #different directories where our dataset is saved
 
 DATADIR = [r"O:\DermoData\train_sep",r"O:\DermoData\valid",r"O:\DermoData\test"]    #O:\DermoData
 #DATADIR = [r"/root/DermoScan/Projet/Dataset/archive/DerMel/train_sep",r"/root/DermoScan/Projet/Dataset/archive/DermMel/valid",r"/root/DermoScan/Projet/Dataset/archie/DerMel/test"]
 CATEGORIES = ["Melanoma","NotMelanoma"]
-IMG_SIZE = 100 #square resolution of the picture
+IMG_SIZE = 160 #square resolution of the picture
 
 
 #creating different list that cointain our dataset splitted
@@ -46,6 +48,7 @@ def create_data():
                 path = os.path.join(DATADIR[i], category)
                 for img in tqdm(os.listdir(path), desc="Chargement du dataset", colour="green"):
                     img_array = cv2.imread(os.path.join(path,img))
+                    img_array = cv2.cvtColor(img_array, cv2.COLOR_BGR2RGB)
                     new_array = cv2.resize(img_array, (IMG_SIZE,IMG_SIZE))
                     All_data[i].append([new_array,j])
 
