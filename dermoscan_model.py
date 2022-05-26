@@ -9,8 +9,9 @@ from tensorflow.keras import layers
 from save_load import *
 import os
 from tensorflow.keras import regularizers
+import cv2
 
-#os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 IMG_SIZE=160
 
@@ -66,7 +67,7 @@ callbacks = keras.callbacks.ModelCheckpoint(filepath=r'O:\DermoResult', save_fre
 
 model.compile(optimizer = tf.keras.optimizers.RMSprop(learning_rate=0.0001), loss='binary_crossentropy', metrics = ['acc'])
 
-history = model.fit(x=X_train, y=Y_train, batch_size=5, epochs=250, validation_data=(X_valid, Y_valid), callbacks=callbacks)
+history = model.fit(x=X_train, y=Y_train, batch_size=60, epochs=75, validation_data=(X_valid, Y_valid), callbacks=callbacks)
 
 loss, acc = model.evaluate(x=X_test, y=Y_test)
 
